@@ -27,12 +27,14 @@ class LSA_Summarization():
     v_t = None
     s_k = None
     main_sig = 0
+    term_sig = 0
 
     def __init__(self, filename):
         with open(filename, mode="r", encoding="utf-8-sig") as f:
             raw_text = f.read()
         raw_text = raw_text.replace("\n", "")
         sentence_list = re.split(r' *[\.\?!][\'"\)\]]* *', raw_text)
+        sentence_list.remove("")
         word_list = re.split(r"\s+", raw_text)
         self.columns = len(sentence_list)
         self.rows = len(word_list)
@@ -53,7 +55,7 @@ class LSA_Summarization():
         self.s_k = []
         for column in self.v_t.T:
             s_kth = sum(s*v**2 for s, v in zip(sigma_sqaured, column))
-            self.s_k.append(s_kth)
+            self.s_k.append(np.sqrt(s_kth))
         # print("\n\n")
         # print(self.s_k)
 
@@ -108,31 +110,48 @@ class LSA_Summarization():
             cos_phi += (self.u[i][0] * u_modified[i][0])
         self.main_sig = cos_phi
         print(cos_phi, "\n")
+        
         print("Similarity of Term Significance: \n")
         sigma_sqaured = np.square(sigma, sigma)
 
         s_k = []
+        new_cos_phi = 0
         for column in v_t.T:
             s_kth = sum(s*v**2 for s, v in zip(sigma_sqaured, column))
-            s_k.append(s_kth)
-        
+            s_k.append(np.sqrt(s_kth))
+
+        s_k_modified = np.zeros(shape=(len(self.sentence_list)))
+        for i in range(len(sentence_list)):
+            try:
+                ind = self.sentence_list.index(sentence_list[i])
+                s_k_modified[ind] = s_k[i]
+            except:
+                continue
+        norm_s_k = self.s_k/la.norm(self.s_k)
+        norm_s_k_modified = s_k_modified/la.norm(s_k_modified)
+        for i in range(len(s_k_modified)):
+            new_cos_phi += (norm_s_k[i] * norm_s_k_modified[i])
+        self.term_sig = new_cos_phi
+        print(new_cos_phi, "\n")
 
 
 
 
 
 if __name__ == "__main__":
-    b = LSA_Summarization("text/text.txt")
+    b = LSA_Summarization("text/stud.txt")
     b.svd()
-    #x = [x * 0.05 for x in range(0, 20)]
-    x = [0.55]
+    #x = [x * 0.05 for x in range(0, 21)]
+    x = [0.2]
     y = []
+    z = []
     for i in x:
         (b.choose_sentences(i, "text/summarized.txt"))
         b.evaluate("text/summarized.txt")
         y.append(b.main_sig)
+        z.append(b.term_sig)
     
-    print(x, y)
+    print(x, "\n", y, "\n", z)
     # plt.plot(x, y)
     # plt.xlabel('x - axis')
     # plt.ylabel('y - axis')    
