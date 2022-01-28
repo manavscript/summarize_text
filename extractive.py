@@ -139,10 +139,10 @@ class LSA_Summarization():
 
 
 if __name__ == "__main__":
-    b = LSA_Summarization("text/stud.txt")
+    b = LSA_Summarization("text/text.txt")
     b.svd()
     #x = [x * 0.05 for x in range(0, 21)]
-    x = [0.2]
+    x = [0.55]
     y = []
     z = []
     for i in x:
